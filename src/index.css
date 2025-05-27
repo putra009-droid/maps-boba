@@ -1,0 +1,38 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ... (gaya global lainnya jika ada) ... */
+
+/* Container untuk peta Leaflet */
+.map-container {
+  height: 65vh;
+  width: 100%;
+  border-radius: 0.5rem; /* rounded-lg */
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-md */
+  margin-top: 1.5rem; /* mt-6 */
+}
+
+/* Styling dasar untuk Popup Leaflet agar lebih menyatu dengan Tailwind */
+.leaflet-popup-content-wrapper {
+  @apply bg-white rounded-lg shadow-xl border border-gray-200;
+  /* Hapus border default Leaflet jika ada, karena kita pakai border Tailwind */
+  border: none !important; 
+}
+
+.leaflet-popup-content {
+  @apply p-0 text-sm; /* Hapus padding default Leaflet agar padding di komponen kita yang berlaku */
+  margin: 0 !important; /* Pastikan tidak ada margin default dari Leaflet */
+  min-width: 300px; /* Atur lebar minimum popup jika perlu */
+}
+
+.leaflet-popup-tip-container {
+  /* Jika ingin menyembunyikan atau mengatur tip (panah kecil di popup) */
+  /* @apply hidden; */
+}
+.leaflet-popup-tip {
+  @apply bg-white shadow-none; /* Samakan dengan background wrapper */
+}
+
+/* ... (sisa styling .order-popup-content dari CSS lama bisa dihapus jika semua sudah diganti Tailwind) ... */
