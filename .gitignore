@@ -1,0 +1,98 @@
+# Log
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Direktori dependensi
+node_modules/
+jspm_packages/
+
+# Hasil build
+dist
+dist-ssr
+/build
+/out
+/.vitepress/dist
+/.vitepress/cache
+
+# Berkas yang diminifikasi
+*.min.js
+*.min.css
+
+# Berkas dan direktori sementara
+*.local
+.temp/
+.cache/
+coverage/
+.nyc_output/
+
+# Direktori dan berkas editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.project
+.classpath
+*.swp
+*.swo
+*.swn
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Berkas sistem
+.DS_Store
+Thumbs.db
+
+# Variabel lingkungan
+.env
+.env.local
+.env.*.local
+!env.example
+!env.sample
+
+# Berkas Opsional
+.eslintcache
+.stylelintcache
+.prettiercache
+
+# Berkas cache TypeScript
+*.tsbuildinfo
+
+# Next.js (jika Anda pernah menggunakannya)
+.next/
+out/
+
+# Remix (jika Anda pernah menggunakannya)
+.cache/
+build/
+public/build/
+app/build/
+
+# Gatsby (jika Anda pernah menggunakannya)
+.cache/
+public/
+
+# Nuxt.js (jika Anda pernah menggunakannya)
+.nuxt/
+dist/
+
+# Docusaurus (jika Anda pernah menggunakannya)
+.docusaurus/
+build/
+i18n/
+
+# SvelteKit (jika Anda pernah menggunakannya)
+.svelte-kit/
+build/
+
+# Berkas test runner
+/cypress/videos/
+/cypress/screenshots/
+junit.xml
+playwright-report/
+test-results/
