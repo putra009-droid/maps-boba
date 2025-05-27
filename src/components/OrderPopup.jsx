@@ -26,7 +26,7 @@ const formatRupiah = (angka) => {
 };
 
 // Alamat API Backend (HIPOTETIS - Servernya perlu dijalankan terpisah)
-const API_ENDPOINT = "http://localhost:3001/api/orders";
+const API_ENDPOINT = "http://159.203.179.29:3001/api/orders";
 // Nomor WhatsApp Admin (jika masih ingin digunakan untuk notifikasi sekunder)
 const ADMIN_WHATSAPP_NUMBER = "6281234567890"; // CONTOH! GANTI DENGAN NOMOR ADMIN YANG BENAR
 
