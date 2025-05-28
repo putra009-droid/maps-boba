@@ -1,12 +1,9 @@
 // src/App.jsx
-
 import React, { useState, useEffect } from 'react';
-import BobaMap from './components/BobaMap';
-// Pastikan path ke BobaMap benar
+import BobaMap from './components/BobaMap'; // Sesuaikan path jika BobaMap.jsx ada di folder lain
 
 // URL API untuk mengambil data toko dari backend Anda
-// PASTIKAN INI MENGARAH KE IP VPS ANDA YANG BENAR
-const API_SHOPS_ENDPOINT = "http://159.203.179.29:3001/api/shops";
+const API_SHOPS_ENDPOINT = "http://159.203.179.29:3001/api/shops"; // PASTIKAN IP VPS BENAR
 
 function App() {
   const [bobaShopsData, setBobaShopsData] = useState([]);
@@ -14,31 +11,38 @@ function App() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log("App.jsx: Mulai mengambil data toko...");
     const fetchShops = async () => {
+      setIsLoading(true); // Set loading true di awal fetch
+      setError(null); // Reset error
       try {
-        setIsLoading(true);
-        setError(null);
         const response = await fetch(API_SHOPS_ENDPOINT);
+        console.log("App.jsx: Status respons API toko:", response.status, response.statusText);
         if (!response.ok) {
           throw new Error(`Gagal mengambil data toko: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
-        if (data.shops) {
+        console.log("App.jsx: Data mentah diterima dari API toko:", JSON.stringify(data, null, 2));
+        
+        if (data.shops && Array.isArray(data.shops)) {
           setBobaShopsData(data.shops);
+          console.log("App.jsx: State bobaShopsData diupdate:", JSON.stringify(data.shops, null, 2));
         } else {
-          setBobaShopsData([]); // Jika tidak ada 'shops' di response, set array kosong
+          console.warn("App.jsx: Properti 'shops' tidak ditemukan atau bukan array dalam respons API. Mengatur ke array kosong.", data);
+          setBobaShopsData([]);
         }
       } catch (err) {
         setError(err.message);
-        console.error("Error fetching shops data:", err);
-        setBobaShopsData([]); // Set array kosong jika ada error
+        console.error("App.jsx: Error saat mengambil data toko:", err);
+        setBobaShopsData([]); // Set array kosong jika terjadi error
       } finally {
         setIsLoading(false);
+        console.log("App.jsx: Pengambilan data toko selesai. isLoading:", false);
       }
     };
 
     fetchShops();
-  }, []); // Dependency array kosong berarti useEffect ini hanya berjalan sekali saat komponen mount
+  }, []); // Dependency array kosong, fetch hanya sekali saat komponen mount
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 font-sans text-gray-800">
@@ -59,9 +63,15 @@ function App() {
           <p className="text-sm text-gray-600">Klik penanda pada peta untuk melihat menu dan memesan.</p>
         </div>
         
-        {isLoading && <p className="text-center py-4">Memuat data toko boba...</p>}
-        {error && <p className="text-center py-4 text-red-600">Error: {error}. Pastikan server backend berjalan dan endpoint API toko benar.</p>}
-        {!isLoading && !error && (
+        {isLoading && <p className="text-center py-4 text-lg text-purple-600">Memuat data toko boba, harap tunggu...</p>}
+        {error && <p className="text-center py-4 text-red-600 font-semibold">Error: {error}. Pastikan server backend berjalan dan endpoint API toko benar.</p>}
+        
+        {!isLoading && !error && bobaShopsData.length === 0 && (
+             <p className="text-center py-4 text-gray-600">Belum ada data toko boba yang tersedia atau gagal dimuat.</p>
+        )}
+
+        {/* Hanya render BobaMap jika tidak loading, tidak ada error, DAN ada data toko */}
+        {!isLoading && !error && bobaShopsData.length > 0 && (
           <BobaMap shops={bobaShopsData} mapCenter={[1.4748, 124.8421]} mapZoom={14} />
         )}
       </main>
