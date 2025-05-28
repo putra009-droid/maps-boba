@@ -1,7 +1,7 @@
 // src/components/OrderPopup.jsx
 import React, { useState } from 'react';
 
-// Icon SVG sederhana
+// Icon SVG sederhana (asumsi sudah ada atau Anda bisa salin dari kode sebelumnya)
 const MinusIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
@@ -19,7 +19,7 @@ const ShoppingCartIcon = () => (
 );
 
 const formatRupiah = (angka) => {
-  if (typeof angka !== 'number') return 0; // Kembalikan 0 jika bukan angka agar tidak error
+  if (typeof angka !== 'number' || isNaN(angka)) return formatRupiah(0);
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
@@ -28,7 +28,8 @@ const formatRupiah = (angka) => {
 };
 
 // Alamat API Backend untuk MENGIRIM PESANAN
-const API_ENDPOINT = "https://159.203.179.29:3001/api/orders"; // PASTIKAN IP VPS BENAR
+// Menggunakan path relatif agar otomatis menggunakan domain dan protokol saat ini (HTTPS)
+const API_ENDPOINT = "/api/orders";
 const ADMIN_WHATSAPP_NUMBER = "6281234567890"; // CONTOH! GANTI DENGAN NOMOR ADMIN YANG BENAR
 
 const OrderPopup = ({ shop }) => {
@@ -36,6 +37,11 @@ const OrderPopup = ({ shop }) => {
   const [orderMessage, setOrderMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSubmitted, setOrderSubmitted] = useState(false);
+
+  if (!shop || typeof shop !== 'object' || !shop.name || !Array.isArray(shop.menu)) {
+    console.error("OrderPopup.jsx: Props 'shop' tidak valid atau tidak lengkap.", shop);
+    return <div className="p-4 text-center text-sm text-red-500">Informasi toko tidak tersedia atau tidak valid.</div>;
+  }
 
   const handleQuantityChange = (itemId, newQuantity) => {
     const quantity = Math.max(0, parseInt(newQuantity, 10) || 0);
@@ -48,25 +54,26 @@ const OrderPopup = ({ shop }) => {
   const decrementQuantity = (itemId) => handleQuantityChange(itemId, (orderItems[itemId] || 0) - 1);
 
   const calculateTotal = () => {
-    if (!shop || !shop.menu || !Array.isArray(shop.menu)) return 0;
     return shop.menu.reduce((total, item) => {
-        if (!item || typeof item.price !== 'number') return total;
+        if (!item || typeof item.price !== 'number' || isNaN(item.price)) return total;
         return total + (item.price * (orderItems[item.id] || 0));
     }, 0);
   };
 
   const handleSubmitOrder = async () => {
-    if (isSubmitting || !shop || !shop.menu) return;
+    if (isSubmitting) return;
+    console.log("OrderPopup.jsx: Memulai handleSubmitOrder");
 
     const itemsForPayload = shop.menu
       .filter(item => item && typeof item.id !== 'undefined' && orderItems[item.id] && orderItems[item.id] > 0)
       .map(item => ({
         id: item.id,
-        name: item.name,
+        name: item.name || "Item Tidak Bernama",
         quantity: orderItems[item.id],
-        price: item.price,
-        subtotal: item.price * orderItems[item.id],
+        price: typeof item.price === 'number' ? item.price : 0,
+        subtotal: (typeof item.price === 'number' ? item.price : 0) * orderItems[item.id],
       }));
+    console.log("OrderPopup.jsx: itemsForPayload:", itemsForPayload);
 
     if (itemsForPayload.length === 0) {
       setOrderMessage('Pilih minimal satu item untuk dipesan.');
@@ -78,31 +85,34 @@ const OrderPopup = ({ shop }) => {
     setOrderMessage('Mengirim pesanan...');
 
     const totalAmount = calculateTotal();
-    const orderId = `BBM-${shop.id || 'UNK'}-${Date.now()}`;
+    const orderId = `BBM-${shop.id || 'TID'}-${Date.now()}`;
 
     const orderPayload = {
       orderId,
-      shopName: shop.name || "Nama Toko Tidak Tersedia",
+      shopName: shop.name,
       items: itemsForPayload,
       totalAmount,
       status: "tertunda",
       timestamp: new Date().toISOString(),
     };
+    console.log("OrderPopup.jsx: orderPayload:", JSON.stringify(orderPayload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINT, {
+      const response = await fetch(API_ENDPOINT, { // Akan menjadi https://www.boba-maps.xyz/api/orders
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),
       });
+      console.log("OrderPopup.jsx: Respons submit order - Status:", response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        console.error("OrderPopup.jsx: Respons error API submit order:", errorData);
         throw new Error(`Gagal mengirim pesanan. Server: ${response.status} - ${errorData.message || 'Tidak ada pesan error tambahan'}`);
       }
 
       const responseData = await response.json();
-      console.log('OrderPopup.jsx - Server response (order submitted):', responseData);
+      console.log('OrderPopup.jsx: Server response (order submitted):', responseData);
 
       setOrderMessage(`Pesanan Anda (${orderId}) berhasil dikirim & diterima server!`);
       setOrderItems({});
@@ -114,15 +124,12 @@ const OrderPopup = ({ shop }) => {
       setOrderSubmitted(false);
     } finally {
       setIsSubmitting(false);
+      console.log("OrderPopup.jsx: handleSubmitOrder selesai.");
     }
   };
 
   const totalAmount = calculateTotal();
-  const isErrorMessage = orderMessage.startsWith('Pilih minimal') || orderMessage.startsWith('Gagal mengirim pesanan') || orderMessage.startsWith('Terjadi kesalahan');
-
-  if (!shop || !shop.name || !shop.menu) {
-    return <div className="p-4 text-center text-sm text-red-500">Informasi menu untuk toko ini tidak lengkap.</div>;
-  }
+  const isErrorMessage = orderMessage && (orderMessage.startsWith('Pilih minimal') || orderMessage.startsWith('Gagal mengirim pesanan') || orderMessage.startsWith('Terjadi kesalahan'));
 
   return (
     <div className="p-4 sm:p-5 bg-white text-gray-700 w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto">
@@ -131,9 +138,9 @@ const OrderPopup = ({ shop }) => {
       </div>
 
       <div className="space-y-3 mb-5 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-        {shop.menu.map(item => (
-          item && typeof item.id !== 'undefined' && item.name && typeof item.price === 'number' ? ( // Tambah validasi item
-            <div key={item.id} className="flex flex-col items-center p-3 bg-slate-50 rounded-lg shadow border border-slate-200 space-y-1">
+        {shop.menu.map((item, index) => (
+          item && typeof item.id !== 'undefined' && item.name && typeof item.price === 'number' ? (
+            <div key={item.id || `menu-item-${index}`} className="flex flex-col items-center p-3 bg-slate-50 rounded-lg shadow border border-slate-200 space-y-1">
               <div className="text-center">
                 <p className="font-semibold text-gray-800 text-sm sm:text-base">{item.name}</p>
                 <p className="text-xs sm:text-sm text-purple-600 font-bold">{formatRupiah(item.price)}</p>
@@ -166,7 +173,7 @@ const OrderPopup = ({ shop }) => {
               </div>
             </div>
           ) : (
-            <div key={`invalid-item-${Math.random()}`} className="text-xs text-red-500 p-2">Item menu tidak valid.</div>
+            <div key={`invalid-item-${index}`} className="text-xs text-red-500 p-2">Item menu tidak valid atau tidak lengkap.</div>
           )
         ))}
       </div>
