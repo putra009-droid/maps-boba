@@ -28,7 +28,7 @@ const formatRupiah = (angka) => {
 };
 
 // Alamat API Backend untuk MENGIRIM PESANAN
-const API_ENDPOINT = "http://159.203.179.29:3001/api/orders"; // PASTIKAN IP VPS BENAR
+const API_ENDPOINT = "https://159.203.179.29:3001/api/orders"; // PASTIKAN IP VPS BENAR
 const ADMIN_WHATSAPP_NUMBER = "6281234567890"; // CONTOH! GANTI DENGAN NOMOR ADMIN YANG BENAR
 
 const OrderPopup = ({ shop }) => {
