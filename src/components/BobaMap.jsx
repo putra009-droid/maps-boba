@@ -40,7 +40,7 @@ const BobaMap = ({ shops, mapCenter = [1.4748, 124.8421], mapZoom = 14 }) => {
   console.log("BobaMap.jsx: Akan me-render peta dengan jumlah toko:", shops.length);
 
   return (
-    <MapContainer center={mapCenter} zoom={mapZoom} scrollWheelZoom={true} className="map-container">
+    <MapContainer center={mapCenter} zoom={mapZoom} scrollWheelZoom={true} className="map-container leaflet-map">
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -60,7 +60,6 @@ const BobaMap = ({ shops, mapCenter = [1.4748, 124.8421], mapZoom = 14 }) => {
         return (
           <Marker key={shop.id} position={shop.position}>
             <Popup>
-              {/* Memanggil OrderPopup yang sebenarnya */}
               <OrderPopup shop={shop} />
             </Popup>
           </Marker>

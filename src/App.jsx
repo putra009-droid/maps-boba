@@ -1,10 +1,8 @@
 // src/App.jsx
 import React, { useState, useEffect } from 'react';
-import BobaMap from './components/BobaMap'; // Sesuaikan path jika BobaMap.jsx ada di folder lain
-// Hapus import './index.css'; jika sudah diimpor di main.jsx
+import BobaMap from './components/BobaMap';
+import 'leaflet/dist/leaflet.css'; // Pastikan CSS Leaflet diimpor
 
-// URL API untuk mengambil data toko dari backend Anda
-// Menggunakan path relatif agar otomatis menggunakan domain dan protokol saat ini (HTTPS)
 const API_SHOPS_ENDPOINT = "/api/shops"; 
 
 function App() {
@@ -19,7 +17,7 @@ function App() {
       setError(null);
       console.log("App.jsx: Memulai fetch ke", API_SHOPS_ENDPOINT);
       try {
-        const response = await fetch(API_SHOPS_ENDPOINT); // Akan menjadi https://www.boba-maps.xyz/api/shops
+        const response = await fetch(API_SHOPS_ENDPOINT);
         console.log("App.jsx: Status respons API toko:", response.status, response.statusText);
         if (!response.ok) {
           const errorText = await response.text();
@@ -67,7 +65,7 @@ function App() {
     mainContent = <p className="text-center py-4 text-lg text-purple-600">Memuat data toko boba, harap tunggu...</p>;
   } else if (error) {
     mainContent = <p className="text-center py-4 text-red-600 font-semibold">Error: {error}. Pastikan server backend berjalan dan endpoint API toko benar.</p>;
-  } else if (bobaShopsData.length === 0) {
+  } else if (bobaShopsData.length === 0 && !isLoading) {
     mainContent = <p className="text-center py-4 text-gray-600">Belum ada data toko boba yang tersedia atau gagal dimuat.</p>;
   } else {
     mainContent = <BobaMap shops={bobaShopsData} mapCenter={[1.4748, 124.8421]} mapZoom={14} />;
