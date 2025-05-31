@@ -18,15 +18,15 @@ L.Icon.Default.mergeOptions({
 });
 
 const BobaMap = ({ shops, mapCenter = [1.4748, 124.8421], mapZoom = 14 }) => {
+  // --- TAMBAHKAN BARIS DEBUGGING INI ---
   console.log('BobaMap.jsx - Props "shops" diterima:', JSON.stringify(shops, null, 2));
+  // ------------------------------------
   console.log('BobaMap.jsx - Props "mapCenter" diterima:', mapCenter);
   console.log('BobaMap.jsx - Props "mapZoom" diterima:', mapZoom);
 
   // Validasi dasar untuk props shops
   if (!shops || !Array.isArray(shops)) {
     console.error('BobaMap.jsx: "shops" prop is missing or not an array!', shops);
-    // Tampilkan peta kosong dengan pesan jika data toko tidak valid atau tidak ada
-    // Ini membantu membedakan antara tidak ada data vs. error render
     return (
         <MapContainer center={mapCenter} zoom={13} className="map-container">
             <TileLayer
@@ -52,6 +52,10 @@ const BobaMap = ({ shops, mapCenter = [1.4748, 124.8421], mapZoom = 14 }) => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {shops.map(shop => {
+        // --- TAMBAHKAN BARIS DEBUGGING INI ---
+        console.log('BobaMap.jsx - Mapping shop object:', JSON.stringify(shop, null, 2));
+        // ------------------------------------
+
         // Validasi setiap shop sebelum membuat Marker
         if (!shop || typeof shop.id === 'undefined') {
           console.error('BobaMap.jsx: Data toko tidak valid, ID hilang atau objek shop null/undefined:', shop);
@@ -67,7 +71,7 @@ const BobaMap = ({ shops, mapCenter = [1.4748, 124.8421], mapZoom = 14 }) => {
         return (
           <Marker key={shop.id} position={shop.position}>
             <Popup>
-              <OrderPopup shop={shop} />
+              <OrderPopup shop={shop} /> {/* Pastikan objek shop di sini lengkap */}
             </Popup>
           </Marker>
         );

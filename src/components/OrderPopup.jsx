@@ -35,9 +35,12 @@ const formatRupiah = (angka) => {
 };
 
 const API_ENDPOINT = "/api/orders";
-// const ADMIN_WHATSAPP_NUMBER = "6281234567890"; // Masih bisa digunakan sebagai fallback jika diperlukan
 
 const OrderPopup = ({ shop }) => {
+  // --- TAMBAHKAN BARIS DEBUGGING INI ---
+  console.log('OrderPopup.jsx - Props "shop" yang diterima:', JSON.stringify(shop, null, 2));
+  // ------------------------------------
+
   const [orderItems, setOrderItems] = useState({});
   const [orderMessage, setOrderMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,6 +69,7 @@ const OrderPopup = ({ shop }) => {
   };
 
   const handleSubmitOrder = async () => {
+    // ... (implementasi tidak berubah) ...
     if (isSubmitting) return;
     console.log("OrderPopup.jsx: Memulai handleSubmitOrder");
 
@@ -103,7 +107,7 @@ const OrderPopup = ({ shop }) => {
     console.log("OrderPopup.jsx: orderPayload:", JSON.stringify(orderPayload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINT, {
+      const response = await fetch(API_ENDPOINT, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),
@@ -138,10 +142,16 @@ const OrderPopup = ({ shop }) => {
 
   const cleanWhatsAppNumber = (number) => {
     if (!number) return null;
-    return number.replace(/\D/g, ''); // Hapus semua karakter non-digit
+    return number.replace(/\D/g, '');
   };
 
-  const shopWhatsapp = cleanWhatsAppNumber(shop.whatsappNumber); // Ambil dan bersihkan nomor WA toko
+  // --- TAMBAHKAN BARIS DEBUGGING INI (ATAU PINDAHKAN DARI ATAS JIKA SUDAH) ---
+  console.log('OrderPopup.jsx - shop.whatsappNumber mentah:', shop ? shop.whatsappNumber : 'shop is undefined');
+  // -------------------------------------------------------------------
+  const shopWhatsapp = shop ? cleanWhatsAppNumber(shop.whatsappNumber) : null;
+  // --- TAMBAHKAN BARIS DEBUGGING INI ---
+  console.log('OrderPopup.jsx - shopWhatsapp setelah dibersihkan:', shopWhatsapp);
+  // ------------------------------------
 
   return (
     <div className="p-4 sm:p-5 bg-white text-gray-700 w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto">
@@ -163,6 +173,7 @@ const OrderPopup = ({ shop }) => {
         )}
       </div>
 
+      {/* ... sisa JSX (menu, ringkasan, tombol order) ... */}
       <div className="space-y-3 mb-5 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
         {shop.menu.map((item, index) => (
           item && typeof item.id !== 'undefined' && item.name && typeof item.price === 'number' ? (
