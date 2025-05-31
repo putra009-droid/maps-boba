@@ -2,7 +2,7 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import OrderPopup from './OrderPopup'; // Sesuaikan path jika OrderPopup.jsx ada di folder lain
+// import OrderPopup from './OrderPopup'; // OrderPopup sementara dinonaktifkan untuk tes
 
 // Fix untuk default icon path Leaflet (wajib ada)
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -18,13 +18,10 @@ L.Icon.Default.mergeOptions({
 });
 
 const BobaMap = ({ shops, mapCenter = [1.4748, 124.8421], mapZoom = 14 }) => {
-  // --- TAMBAHKAN BARIS DEBUGGING INI ---
   console.log('BobaMap.jsx - Props "shops" diterima:', JSON.stringify(shops, null, 2));
-  // ------------------------------------
   console.log('BobaMap.jsx - Props "mapCenter" diterima:', mapCenter);
   console.log('BobaMap.jsx - Props "mapZoom" diterima:', mapZoom);
 
-  // Validasi dasar untuk props shops
   if (!shops || !Array.isArray(shops)) {
     console.error('BobaMap.jsx: "shops" prop is missing or not an array!', shops);
     return (
@@ -52,11 +49,8 @@ const BobaMap = ({ shops, mapCenter = [1.4748, 124.8421], mapZoom = 14 }) => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {shops.map(shop => {
-        // --- TAMBAHKAN BARIS DEBUGGING INI ---
         console.log('BobaMap.jsx - Mapping shop object:', JSON.stringify(shop, null, 2));
-        // ------------------------------------
 
-        // Validasi setiap shop sebelum membuat Marker
         if (!shop || typeof shop.id === 'undefined') {
           console.error('BobaMap.jsx: Data toko tidak valid, ID hilang atau objek shop null/undefined:', shop);
           return null; 
@@ -71,7 +65,15 @@ const BobaMap = ({ shops, mapCenter = [1.4748, 124.8421], mapZoom = 14 }) => {
         return (
           <Marker key={shop.id} position={shop.position}>
             <Popup>
-              <OrderPopup shop={shop} /> {/* Pastikan objek shop di sini lengkap */}
+              {/* --- AWAL BAGIAN TES SEMENTARA --- */}
+              <div>
+                <p>TES POPUP: Toko {shop.name}</p>
+                <p>ID Toko: {shop.id}</p>
+                {/* Log ini akan dieksekusi jika bagian ini dirender oleh Popup */}
+                {console.log(`BobaMap.jsx: KONTEN POPUP TES untuk toko -> ${shop.name} (ID: ${shop.id})`)}
+              </div>
+              {/* <OrderPopup shop={shop} /> */} {/* OrderPopup dinonaktifkan sementara */}
+              {/* --- AKHIR BAGIAN TES SEMENTARA --- */}
             </Popup>
           </Marker>
         );
