@@ -32,37 +32,36 @@ const formatRupiah = (angka) => {
   }).format(angka);
 };
 
-const API_ENDPOINT = "/api/orders";
+const API_ENDPOINT = "/api/orders"; // Pastikan ini sesuai dengan endpoint backend Anda
 
 const OrderPopup = ({ shop }) => {
-  // --- LOG UNTUK DEBUGGING DATA SHOP YANG DITERIMA ---
+  // --- LOG KUNCI UNTUK MEMERIKSA DATA 'SHOP' YANG DITERIMA ---
   console.log('OrderPopup.jsx - Props "shop" yang diterima:', JSON.stringify(shop, null, 2));
-  // ----------------------------------------------------
+  // --------------------------------------------------------------
 
   const [orderItems, setOrderItems] = useState({});
   const [orderMessage, setOrderMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSubmitted, setOrderSubmitted] = useState(false);
 
+  // Validasi dasar untuk prop 'shop'
   if (!shop || typeof shop !== 'object' || !shop.name || !Array.isArray(shop.menu)) {
     console.error("OrderPopup.jsx: Props 'shop' tidak valid atau tidak lengkap.", shop);
     return <div className="p-4 text-center text-sm text-red-500">Informasi toko tidak tersedia atau tidak valid.</div>;
   }
 
   const cleanWhatsAppNumber = (number) => {
-    if (!number) return null;
-    // Pastikan 'number' adalah string sebelum memanggil .replace()
-    // dan hapus semua karakter non-digit
-    return String(number).replace(/\D/g, '');
+    if (!number) return null; // Jika nomor kosong, null, atau undefined, kembalikan null
+    return String(number).replace(/\D/g, ''); // Hapus semua karakter non-digit
   };
 
   // Ambil dan bersihkan nomor WhatsApp spesifik toko
   const shopSpecificWhatsapp = shop ? cleanWhatsAppNumber(shop.whatsappNumber) : null;
 
-  // --- LOG UNTUK DEBUGGING NOMOR WHATSAPP ---
+  // --- LOG KUNCI UNTUK MEMERIKSA PROSES NOMOR WHATSAPP ---
   console.log('OrderPopup.jsx - shop.whatsappNumber mentah:', shop ? shop.whatsappNumber : 'Objek shop tidak tersedia atau tidak ada whatsappNumber');
   console.log('OrderPopup.jsx - shopSpecificWhatsapp setelah dibersihkan:', shopSpecificWhatsapp);
-  // --------------------------------------------
+  // --------------------------------------------------------
 
   const handleQuantityChange = (itemId, newQuantity) => {
     const quantity = Math.max(0, parseInt(newQuantity, 10) || 0);
@@ -82,7 +81,6 @@ const OrderPopup = ({ shop }) => {
   };
 
   const handleSubmitOrder = async () => {
-    // (Implementasi handleSubmitOrder tetap sama seperti sebelumnya)
     if (isSubmitting) return;
     const itemsForPayload = shop.menu
       .filter(item => item && typeof item.id !== 'undefined' && orderItems[item.id] && orderItems[item.id] > 0)
@@ -103,13 +101,13 @@ const OrderPopup = ({ shop }) => {
     setIsSubmitting(true);
     setOrderMessage('Mengirim pesanan...');
     const totalAmount = calculateTotal();
-    const orderId = `BBM-${shop.id || 'TID'}-${Date.now()}`;
+    const orderId = `BBM-${shop.id || 'TID'}-${Date.now()}`; // Membuat ID pesanan unik
     const orderPayload = {
       orderId,
       shopName: shop.name,
       items: itemsForPayload,
       totalAmount,
-      status: "tertunda",
+      status: "tertunda", // Status awal pesanan
       timestamp: new Date().toISOString(),
     };
 
@@ -119,13 +117,19 @@ const OrderPopup = ({ shop }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),
       });
+      
+      console.log('OrderPopup.jsx: Respons submit order - Status:', response.status); // Log status respons
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }));
         throw new Error(`Gagal mengirim pesanan. Server: ${response.status} - ${errorData.message || 'Tidak ada pesan error tambahan'}`);
       }
-      await response.json();
-      setOrderMessage(`Pesanan Anda (${orderId}) berhasil dikirim & diterima server!`);
-      setOrderItems({});
+      
+      const responseData = await response.json();
+      console.log('OrderPopup.jsx: Server response (order submitted):', responseData); // Log data respons dari server
+      
+      setOrderMessage(responseData.message || `Pesanan Anda (${orderId}) berhasil dikirim & diterima server!`);
+      setOrderItems({}); // Kosongkan item setelah berhasil
       setOrderSubmitted(true);
     } catch (error) {
       console.error('OrderPopup.jsx - Error submitting order:', error);
@@ -133,6 +137,7 @@ const OrderPopup = ({ shop }) => {
       setOrderSubmitted(false);
     } finally {
       setIsSubmitting(false);
+      console.log('OrderPopup.jsx: handleSubmitOrder selesai.'); // Log akhir fungsi
     }
   };
 
@@ -145,7 +150,8 @@ const OrderPopup = ({ shop }) => {
         <h3 className="text-lg sm:text-xl font-semibold text-purple-700 text-center">Pesan dari: {shop.name}</h3>
         
         {/* Tombol WhatsApp ke NOMOR TOKO SPESIFIK */}
-        {shopSpecificWhatsapp && ( // Tombol hanya muncul jika nomor WA toko ada dan valid
+        {/* Muncul hanya jika shopSpecificWhatsapp memiliki nilai (tidak null, tidak string kosong) */}
+        {shopSpecificWhatsapp && ( 
           <div className="mt-2 text-center">
             <a
               href={`https://wa.me/${shopSpecificWhatsapp}?text=${encodeURIComponent(`Halo ${shop.name}, saya ingin bertanya mengenai produk Anda.`)}`}
