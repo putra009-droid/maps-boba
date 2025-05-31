@@ -1,7 +1,7 @@
 // src/components/OrderPopup.jsx
 import React, { useState } from 'react';
 
-// Icon SVG sederhana
+// Icon SVG (pastikan path atau definisinya benar)
 const MinusIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
@@ -17,8 +17,6 @@ const ShoppingCartIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
   </svg>
 );
-
-// Icon SVG untuk WhatsApp
 const WhatsAppIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" fill="currentColor" viewBox="0 0 16 16">
     <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
@@ -37,9 +35,9 @@ const formatRupiah = (angka) => {
 const API_ENDPOINT = "/api/orders";
 
 const OrderPopup = ({ shop }) => {
-  // --- TAMBAHKAN BARIS DEBUGGING INI ---
+  // --- LOG UNTUK DEBUGGING DATA SHOP YANG DITERIMA ---
   console.log('OrderPopup.jsx - Props "shop" yang diterima:', JSON.stringify(shop, null, 2));
-  // ------------------------------------
+  // ----------------------------------------------------
 
   const [orderItems, setOrderItems] = useState({});
   const [orderMessage, setOrderMessage] = useState('');
@@ -50,6 +48,21 @@ const OrderPopup = ({ shop }) => {
     console.error("OrderPopup.jsx: Props 'shop' tidak valid atau tidak lengkap.", shop);
     return <div className="p-4 text-center text-sm text-red-500">Informasi toko tidak tersedia atau tidak valid.</div>;
   }
+
+  const cleanWhatsAppNumber = (number) => {
+    if (!number) return null;
+    // Pastikan 'number' adalah string sebelum memanggil .replace()
+    // dan hapus semua karakter non-digit
+    return String(number).replace(/\D/g, '');
+  };
+
+  // Ambil dan bersihkan nomor WhatsApp spesifik toko
+  const shopSpecificWhatsapp = shop ? cleanWhatsAppNumber(shop.whatsappNumber) : null;
+
+  // --- LOG UNTUK DEBUGGING NOMOR WHATSAPP ---
+  console.log('OrderPopup.jsx - shop.whatsappNumber mentah:', shop ? shop.whatsappNumber : 'Objek shop tidak tersedia atau tidak ada whatsappNumber');
+  console.log('OrderPopup.jsx - shopSpecificWhatsapp setelah dibersihkan:', shopSpecificWhatsapp);
+  // --------------------------------------------
 
   const handleQuantityChange = (itemId, newQuantity) => {
     const quantity = Math.max(0, parseInt(newQuantity, 10) || 0);
@@ -69,10 +82,8 @@ const OrderPopup = ({ shop }) => {
   };
 
   const handleSubmitOrder = async () => {
-    // ... (implementasi tidak berubah) ...
+    // (Implementasi handleSubmitOrder tetap sama seperti sebelumnya)
     if (isSubmitting) return;
-    console.log("OrderPopup.jsx: Memulai handleSubmitOrder");
-
     const itemsForPayload = shop.menu
       .filter(item => item && typeof item.id !== 'undefined' && orderItems[item.id] && orderItems[item.id] > 0)
       .map(item => ({
@@ -82,7 +93,6 @@ const OrderPopup = ({ shop }) => {
         price: typeof item.price === 'number' ? item.price : 0,
         subtotal: (typeof item.price === 'number' ? item.price : 0) * orderItems[item.id],
       }));
-    console.log("OrderPopup.jsx: itemsForPayload:", itemsForPayload);
 
     if (itemsForPayload.length === 0) {
       setOrderMessage('Pilih minimal satu item untuk dipesan.');
@@ -92,10 +102,8 @@ const OrderPopup = ({ shop }) => {
 
     setIsSubmitting(true);
     setOrderMessage('Mengirim pesanan...');
-
     const totalAmount = calculateTotal();
     const orderId = `BBM-${shop.id || 'TID'}-${Date.now()}`;
-
     const orderPayload = {
       orderId,
       shopName: shop.name,
@@ -104,64 +112,43 @@ const OrderPopup = ({ shop }) => {
       status: "tertunda",
       timestamp: new Date().toISOString(),
     };
-    console.log("OrderPopup.jsx: orderPayload:", JSON.stringify(orderPayload, null, 2));
 
     try {
-      const response = await fetch(API_ENDPOINT, { 
+      const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),
       });
-      console.log("OrderPopup.jsx: Respons submit order - Status:", response.status);
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: response.statusText }));
-        console.error("OrderPopup.jsx: Respons error API submit order:", errorData);
         throw new Error(`Gagal mengirim pesanan. Server: ${response.status} - ${errorData.message || 'Tidak ada pesan error tambahan'}`);
       }
-
-      const responseData = await response.json();
-      console.log('OrderPopup.jsx: Server response (order submitted):', responseData);
-
+      await response.json();
       setOrderMessage(`Pesanan Anda (${orderId}) berhasil dikirim & diterima server!`);
       setOrderItems({});
       setOrderSubmitted(true);
-      
     } catch (error) {
       console.error('OrderPopup.jsx - Error submitting order:', error);
       setOrderMessage(`Terjadi kesalahan: ${error.message || "Tidak dapat terhubung ke server."} Pastikan server backend berjalan.`);
       setOrderSubmitted(false);
     } finally {
       setIsSubmitting(false);
-      console.log("OrderPopup.jsx: handleSubmitOrder selesai.");
     }
   };
 
   const totalAmount = calculateTotal();
   const isErrorMessage = orderMessage && (orderMessage.startsWith('Pilih minimal') || orderMessage.startsWith('Gagal mengirim pesanan') || orderMessage.startsWith('Terjadi kesalahan'));
 
-  const cleanWhatsAppNumber = (number) => {
-    if (!number) return null;
-    return number.replace(/\D/g, '');
-  };
-
-  // --- TAMBAHKAN BARIS DEBUGGING INI (ATAU PINDAHKAN DARI ATAS JIKA SUDAH) ---
-  console.log('OrderPopup.jsx - shop.whatsappNumber mentah:', shop ? shop.whatsappNumber : 'shop is undefined');
-  // -------------------------------------------------------------------
-  const shopWhatsapp = shop ? cleanWhatsAppNumber(shop.whatsappNumber) : null;
-  // --- TAMBAHKAN BARIS DEBUGGING INI ---
-  console.log('OrderPopup.jsx - shopWhatsapp setelah dibersihkan:', shopWhatsapp);
-  // ------------------------------------
-
   return (
     <div className="p-4 sm:p-5 bg-white text-gray-700 w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto">
       <div className="mb-4 pb-3 border-b border-gray-200">
         <h3 className="text-lg sm:text-xl font-semibold text-purple-700 text-center">Pesan dari: {shop.name}</h3>
-        {/* Tombol WhatsApp */}
-        {shopWhatsapp && (
+        
+        {/* Tombol WhatsApp ke NOMOR TOKO SPESIFIK */}
+        {shopSpecificWhatsapp && ( // Tombol hanya muncul jika nomor WA toko ada dan valid
           <div className="mt-2 text-center">
             <a
-              href={`https://wa.me/${shopWhatsapp}?text=${encodeURIComponent(`Halo ${shop.name}, saya ingin bertanya mengenai produk Anda.`)}`}
+              href={`https://wa.me/${shopSpecificWhatsapp}?text=${encodeURIComponent(`Halo ${shop.name}, saya ingin bertanya mengenai produk Anda.`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
@@ -173,7 +160,7 @@ const OrderPopup = ({ shop }) => {
         )}
       </div>
 
-      {/* ... sisa JSX (menu, ringkasan, tombol order) ... */}
+      {/* Daftar Menu */}
       <div className="space-y-3 mb-5 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
         {shop.menu.map((item, index) => (
           item && typeof item.id !== 'undefined' && item.name && typeof item.price === 'number' ? (
@@ -215,6 +202,7 @@ const OrderPopup = ({ shop }) => {
         ))}
       </div>
 
+      {/* Ringkasan Pesanan */}
       {totalAmount > 0 && !orderSubmitted && (
         <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg shadow-sm">
           <h4 className="font-semibold text-purple-700 mb-1.5 text-center text-base sm:text-lg">Ringkasan Pesanan:</h4>
@@ -232,6 +220,7 @@ const OrderPopup = ({ shop }) => {
         </div>
       )}
 
+      {/* Tombol Kirim Pesanan atau Pesan Sukses */}
       {!orderSubmitted ? (
         <button
           onClick={handleSubmitOrder}
@@ -258,6 +247,7 @@ const OrderPopup = ({ shop }) => {
         </div>
       )}
 
+      {/* Pesan Status Order */}
       {orderMessage && !(orderMessage && orderMessage.startsWith('Mengirim pesanan...')) && (
         <p className={`mt-3 text-xs sm:text-sm font-medium text-center p-2.5 rounded-md shadow-sm ${ 
           isErrorMessage 
